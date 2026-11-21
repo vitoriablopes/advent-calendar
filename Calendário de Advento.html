@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Calendário de Advento</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=DM+Serif+Display&family=Mountains+of+Christmas:wght@700&family=Nunito:wght@400;700;800&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --red:#c8102e; --red-d:#8c0f22; --green:#1d6b3f; --green-d:#0d3523;
+  --gold:#f2c14e; --cream:#fbf3e4; --ink:#3b2c10;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  min-height:100vh; overflow-x:hidden;
+  font-family:'Nunito',system-ui,sans-serif; color:var(--cream);
+  background:radial-gradient(ellipse 120% 80% at 50% -10%,#23663f 0%,#0f3a25 45%,#061a10 100%) fixed #061a10;
+}
+body::before{
+  content:""; position:fixed; inset:0; pointer-events:none; z-index:0;
+  background-image:radial-gradient(rgba(255,255,255,.07) 1px,transparent 1.6px);
+  background-size:30px 30px;
+}
+header,main,footer{position:relative; z-index:1}
+
+/* ---------- pisca-pisca ---------- */
+.garland{display:block; width:100%; height:64px; overflow:visible}
+.garland.bottom{transform:scaleY(-1); margin-top:8px}
+.garland .wire{fill:none; stroke:#0b2a1a; stroke-width:2.4; stroke-linecap:round}
+.garland .bulb .glow{animation:glow var(--dur) ease-in-out infinite; animation-delay:var(--del)}
+.garland .bulb .lamp{animation:lamp var(--dur) ease-in-out infinite; animation-delay:var(--del)}
+@keyframes glow{0%,100%{opacity:.95}50%{opacity:.08}}
+@keyframes lamp{0%,100%{opacity:1}50%{opacity:.42}}
+
+/* ---------- cabeçalho ---------- */
+header{text-align:center; padding:0 16px 6px}
+h1{
+  font-family:'Mountains of Christmas',cursive; font-weight:700;
+  font-size:clamp(2.4rem,6.5vw,4.4rem); line-height:1; margin:6px 0 0;
+  color:#ffe7a8; letter-spacing:.5px;
+  text-shadow:0 3px 0 var(--red-d),0 0 26px rgba(255,209,102,.35);
+}
+.sub{margin:10px 0 0; font-size:clamp(.95rem,2.4vw,1.1rem); color:rgba(251,243,228,.82)}
+.status{display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin:14px 0 0}
+.chip{
+  background:rgba(0,0,0,.28); border:1px solid rgba(242,193,78,.4);
+  border-radius:999px; padding:6px 14px; font-weight:700; font-size:.92rem;
+}
+
+/* ---------- quadro ---------- */
+main{padding:18px 16px 6px}
+.board{
+  max-width:1000px; margin:0 auto;
+  display:grid; grid-template-columns:repeat(7,1fr);
+  grid-auto-rows:clamp(88px,11.5vw,128px);
+  gap:clamp(12px,1.7vw,18px);
+  padding:clamp(16px,2.6vw,30px);
+  border-radius:26px;
+  background:linear-gradient(rgba(0,0,0,.2),rgba(0,0,0,.32));
+  box-shadow:inset 0 0 0 2px rgba(242,193,78,.22),0 22px 50px rgba(0,0,0,.35);
+  grid-template-areas:
+    "d7  d7  d12 d12 d16 d5  d3"
+    "d7  d7  d23 d10 d22 d22 d3"
+    "d20 d2  d24 d24 d24 d9  d9"
+    "d20 d14 d24 d24 d24 d19 d11"
+    "d8  d21 d4  d1  d1  d18 d18"
+    "d13 d15 d15 d17 d6  d18 d18";
+}
+@media (max-width:720px){
+  main{padding:14px 10px 6px}
+  .board{
+    grid-template-columns:repeat(4,1fr);
+    grid-auto-rows:calc((100vw - 80px) / 4);
+    gap:10px; padding:14px; border-radius:20px;
+    grid-template-areas:
+      "d7  d7  d12 d3"
+      "d16 d5  d12 d3"
+      "d23 d22 d22 d10"
+      "d20 d24 d24 d9"
+      "d20 d24 d24 d9"
+      "d2  d24 d24 d14"
+      "d19 d11 d1  d18"
+      "d8  d21 d4  d18"
+      "d13 d15 d17 d6";
+  }
+}
+
+/* ---------- presentes ---------- */
+.gift{
+  appearance:none; border:0; background:none; padding:0; margin:0;
+  font:inherit; color:inherit; cursor:pointer; position:relative;
+  container-type:size; -webkit-tap-highlight-color:transparent;
+  transition:transform .25s ease;
+}
+.gift:hover{transform:translateY(-3px)}
+.gift:focus-visible{outline:3px solid var(--gold); outline-offset:5px; border-radius:10px}
+
+.v0{--paper:repeating-linear-gradient(45deg,#c8102e 0 10px,#ad0d27 10px 20px); --ribbon:#f2c14e}
+.v1{--paper:radial-gradient(circle,rgba(255,255,255,.92) 0 2.4px,transparent 3px) 0 0/16px 16px,#1d6b3f; --ribbon:#d42a3c}
+.v2{--paper:repeating-linear-gradient(-45deg,#fbf3e4 0 9px,#d4233a 9px 17px); --ribbon:#1d6b3f}
+.v3{--paper:repeating-linear-gradient(0deg,rgba(6,58,32,.5) 0 6px,transparent 6px 22px),repeating-linear-gradient(90deg,rgba(6,58,32,.5) 0 6px,transparent 6px 22px),repeating-linear-gradient(90deg,rgba(255,255,255,.14) 0 1px,transparent 1px 11px),#b3122b; --ribbon:#fbf3e4}
+.v4{--paper:radial-gradient(circle,#f2c14e 0 1.8px,transparent 2.4px) 0 0/14px 14px,radial-gradient(circle,#f2c14e 0 1.8px,transparent 2.4px) 7px 7px/14px 14px,#124a2c; --ribbon:#f2c14e}
+.v5{--paper:repeating-linear-gradient(90deg,#2b7a4b 0 12px,#226a3f 12px 24px); --ribbon:#d42a3c}
+.v25{--paper:radial-gradient(circle,#ffd77a 0 2.4px,transparent 3px) 0 0/20px 20px,radial-gradient(circle,rgba(255,255,255,.55) 0 1.3px,transparent 1.8px) 10px 10px/20px 20px,linear-gradient(160deg,#1f7a47,#0d3a23); --ribbon:#d42a3c}
+.v24{--paper:radial-gradient(circle,#ffd77a 0 2.6px,transparent 3.2px) 0 0/22px 22px,radial-gradient(circle,rgba(255,255,255,.5) 0 1.4px,transparent 2px) 11px 11px/22px 22px,linear-gradient(160deg,#d4142f,#8c0f22); --ribbon:#f2c14e}
+
+.tissue{
+  position:absolute; left:14%; right:14%; top:15cqmin; height:14cqmin;
+  background:linear-gradient(90deg,#fbf3e4,#f3dfb6 50%,#fbf3e4);
+  clip-path:polygon(0 100%,7% 35%,17% 80%,29% 8%,41% 70%,54% 0,66% 62%,78% 12%,90% 72%,100% 30%,100% 100%);
+  opacity:0; transform:translateY(60%); transition:opacity .4s .45s,transform .5s .45s;
+}
+.gift.open .tissue,.gift.opening .tissue{opacity:1; transform:none}
+
+.box{
+  position:absolute; left:5%; right:5%; top:26cqmin; bottom:0;
+  background:var(--paper); border-radius:5px;
+  box-shadow:inset -7px -7px 0 rgba(0,0,0,.13),inset 4px 4px 0 rgba(255,255,255,.08),0 10px 18px rgba(0,0,0,.4);
+  transition:box-shadow .4s;
+}
+.gift.open .box{
+  box-shadow:inset 0 7cqmin 6cqmin -3cqmin rgba(0,0,0,.45),inset -7px -7px 0 rgba(0,0,0,.13),0 10px 18px rgba(0,0,0,.4);
+}
+.box::before,.lid::before{
+  content:""; position:absolute; top:0; bottom:0; left:50%; width:13cqmin; transform:translateX(-50%);
+  background:var(--ribbon);
+  box-shadow:inset 2px 0 0 rgba(255,255,255,.28),inset -2px 0 0 rgba(0,0,0,.16);
+}
+.lid{
+  position:absolute; left:1%; right:1%; top:12cqmin; height:16cqmin; z-index:2;
+  background:var(--paper); border-radius:5px;
+  box-shadow:inset 0 -5px 0 rgba(0,0,0,.2),0 5px 8px rgba(0,0,0,.3);
+  transform-origin:50% 100%;
+}
+.bow{
+  position:absolute; left:50%; top:-10cqmin; width:42cqmin; height:25cqmin;
+  transform:translateX(-50%); overflow:visible;
+  filter:drop-shadow(0 2px 1px rgba(0,0,0,.35));
+}
+.bow .r{fill:var(--ribbon)}
+.bow .s{fill:rgba(0,0,0,.18)}
+.gift.open .lid{transform:translate(-4cqmin,-9cqmin) rotate(-7deg)}
+
+.num{
+  position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
+  width:36cqmin; height:36cqmin; border-radius:50%;
+  display:grid; place-items:center;
+  background:var(--cream); color:var(--red-d);
+  font-family:'DM Serif Display',Georgia,serif; font-weight:400; font-size:18cqmin; line-height:1;
+  font-variant-numeric:lining-nums tabular-nums; font-feature-settings:'lnum' 1,'tnum' 1;
+  box-shadow:0 3px 6px rgba(0,0,0,.35),inset 0 0 0 1.4cqmin var(--cream),inset 0 0 0 2.1cqmin rgba(140,15,34,.25);
+}
+.num span{display:block; text-box:trim-both cap alphabetic}
+@supports not (text-box:trim-both cap alphabetic){ .num span{transform:translateY(.06em)} }
+.gift.big .num{width:32cqmin; height:32cqmin; font-size:16cqmin}
+.halo{
+  position:absolute; inset:-8%; border-radius:40px; pointer-events:none;
+  background:radial-gradient(closest-side,rgba(255,209,102,.38),rgba(255,209,102,0));
+  animation:halo 3.2s ease-in-out infinite;
+}
+@keyframes halo{0%,100%{opacity:.55; transform:scale(.97)}50%{opacity:1; transform:scale(1.03)}}
+
+.badge{
+  position:absolute; right:1%; top:22cqmin; z-index:3;
+  width:22cqmin; height:22cqmin; border-radius:50%;
+  display:grid; place-items:center; background:var(--gold); color:var(--red-d);
+  font-weight:900; font-size:13cqmin; box-shadow:0 2px 6px rgba(0,0,0,.45);
+  transform:scale(0) rotate(-40deg); transition:transform .45s cubic-bezier(.3,1.6,.5,1);
+}
+.gift.done .badge{transform:scale(1) rotate(-10deg)}
+
+.hoje{
+  position:absolute; left:50%; bottom:-9px; transform:translateX(-50%); z-index:4;
+  display:none; background:var(--gold); color:var(--red-d);
+  font-weight:800; font-size:11px; letter-spacing:.08em; text-transform:uppercase;
+  padding:2px 9px; border-radius:99px; box-shadow:0 2px 5px rgba(0,0,0,.35);
+}
+.gift.today .hoje{display:block}
+.gift.today:not(.open) .box{animation:todayGlow 2s ease-in-out infinite}
+@keyframes todayGlow{0%,100%{filter:drop-shadow(0 0 0 rgba(255,209,102,0))}50%{filter:drop-shadow(0 0 12px rgba(255,209,102,.95))}}
+
+/* animações */
+.gift.opening{animation:wiggle .45s ease-in-out; z-index:5}
+.gift.opening .lid{animation:lidPop .75s .35s cubic-bezier(.3,.7,.4,1) forwards}
+@keyframes wiggle{
+  0%,100%{transform:none}
+  20%{transform:rotate(-4deg) scale(1.04)}
+  40%{transform:rotate(4deg) scale(1.06)}
+  60%{transform:rotate(-3deg) scale(1.05)}
+  80%{transform:rotate(2deg) scale(1.03)}
+}
+@keyframes lidPop{
+  0%{transform:none}
+  35%{transform:translate(0,-28cqmin) rotate(-8deg)}
+  62%{transform:translate(-3cqmin,-32cqmin) rotate(-15deg)}
+  100%{transform:translate(-4cqmin,-9cqmin) rotate(-7deg)}
+}
+.gift.locked-shake{animation:shake .45s ease-in-out}
+@keyframes shake{
+  0%,100%{transform:none}
+  20%{transform:translateX(-6px) rotate(-2deg)}
+  40%{transform:translateX(6px) rotate(2deg)}
+  60%{transform:translateX(-4px) rotate(-1deg)}
+  80%{transform:translateX(4px) rotate(1deg)}
+}
+.spark{position:fixed; z-index:48; pointer-events:none; font-size:16px; line-height:1; transform:translate(-50%,-50%)}
+
+/* ---------- dia 25 ---------- */
+.stage{
+  position:fixed; inset:0; z-index:45; display:grid; place-items:center; overflow:auto;
+  background:rgba(4,18,11,.74); backdrop-filter:blur(5px) saturate(.7); -webkit-backdrop-filter:blur(5px) saturate(.7);
+  opacity:0; visibility:hidden; transition:opacity .45s,visibility 0s .45s;
+}
+.stage:focus{outline:none}
+.stage.show{opacity:1; visibility:visible; transition:opacity .45s}
+.stage-inner{display:flex; flex-direction:column; align-items:center; gap:14px; text-align:center; padding:56px 20px 28px}
+.stage h2{
+  font-family:'Mountains of Christmas',cursive; font-weight:700; margin:0; line-height:1.05;
+  font-size:clamp(2.2rem,6vw,3.6rem); color:#ffe7a8;
+  text-shadow:0 3px 0 var(--red-d),0 0 26px rgba(255,209,102,.4);
+}
+.stage p{margin:0 0 18px; color:rgba(251,243,228,.85); max-width:440px}
+.gift25-wrap{position:relative; width:min(82vw,420px); height:min(68vw,340px); margin-bottom:22px}
+.gift25-wrap .gift{position:absolute; inset:0; width:100%; height:100%}
+.gift25-wrap.enter{animation:drop25 1.1s cubic-bezier(.3,1.15,.5,1) both}
+@keyframes drop25{
+  0%{transform:translateY(-110vh) rotate(-10deg)}
+  65%{transform:translateY(3%) rotate(2deg)}
+  82%{transform:translateY(-2%) rotate(-1deg)}
+  100%{transform:none}
+}
+.rays{
+  position:absolute; left:50%; top:58%; width:190%; aspect-ratio:1; pointer-events:none;
+  transform:translate(-50%,-50%); border-radius:50%;
+  background:repeating-conic-gradient(rgba(255,209,102,.18) 0 9deg,transparent 9deg 18deg);
+  -webkit-mask:radial-gradient(closest-side,#000 25%,transparent); mask:radial-gradient(closest-side,#000 25%,transparent);
+  animation:spin 40s linear infinite;
+}
+@keyframes spin{to{transform:translate(-50%,-50%) rotate(360deg)}}
+.stage-close{
+  position:fixed; top:16px; right:16px; width:42px; height:42px; border-radius:50%; cursor:pointer;
+  font:700 1.1rem 'Nunito',sans-serif; color:var(--cream);
+  background:rgba(0,0,0,.35); border:1px solid rgba(251,243,228,.3);
+}
+.stage-close:hover{background:rgba(0,0,0,.55)}
+.btn25{
+  position:fixed; right:18px; bottom:18px; z-index:30; cursor:pointer;
+  font:800 .95rem 'Nunito',sans-serif; color:var(--red-d);
+  background:linear-gradient(160deg,#ffe08a,#f2c14e); border:0; border-radius:999px; padding:12px 18px;
+  box-shadow:0 8px 22px rgba(0,0,0,.45),0 0 0 3px rgba(255,231,168,.35);
+  animation:bob 2.4s ease-in-out infinite;
+}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+@media (prefers-reduced-motion:reduce){ .rays,.btn25{animation:none} }
+
+/* ---------- post-it ---------- */
+.overlay{
+  position:fixed; inset:0; z-index:50;
+  background:rgba(4,18,11,.62); backdrop-filter:blur(3px); -webkit-backdrop-filter:blur(3px);
+  opacity:0; visibility:hidden; transition:opacity .3s,visibility 0s .3s;
+}
+.overlay.show{opacity:1; visibility:visible; transition:opacity .3s}
+.postit-wrap{
+  position:fixed; left:50%; top:50%; width:min(370px,88vw);
+  transform:translate(-50%,-50%) rotate(-2deg);
+}
+.tape{
+  position:absolute; top:-14px; left:50%; z-index:2; width:120px; height:30px;
+  transform:translateX(-50%) rotate(-3deg); opacity:.88;
+  background:repeating-linear-gradient(45deg,rgba(200,16,46,.85) 0 8px,rgba(251,243,228,.85) 8px 16px,rgba(29,107,63,.85) 16px 24px,rgba(251,243,228,.85) 24px 32px);
+  box-shadow:0 1px 3px rgba(0,0,0,.25);
+}
+.postit{
+  position:relative; max-height:86vh; overflow:auto;
+  background:linear-gradient(172deg,#fffac8 0%,#fff08f 62%,#fbe36f 100%);
+  color:var(--ink); padding:44px 28px 24px;
+  border-radius:2px 2px 26px 2px / 2px 2px 10px 2px;
+  box-shadow:0 22px 45px rgba(0,0,0,.5),inset 0 -12px 18px -12px rgba(120,90,0,.25);
+}
+.pdate{margin:0 0 6px; font-weight:800; font-size:.76rem; letter-spacing:.14em; text-transform:uppercase; color:#b3122b}
+.postit h2{font-family:'Playfair Display',Georgia,serif; font-style:italic; font-weight:700; font-size:2.05rem; line-height:1.1; margin:0 0 10px; color:#2a1f0b}
+.pdesc{font-family:'Cormorant Garamond',Georgia,serif; font-weight:500; font-size:1.38rem; line-height:1.35; margin:0 0 22px; white-space:pre-wrap}
+.stamp{
+  position:absolute; top:16px; right:16px; pointer-events:none;
+  font-family:'Playfair Display',Georgia,serif; font-style:italic; font-weight:700; font-size:1.15rem; color:var(--green);
+  border:2.5px solid var(--green); border-radius:10px; padding:3px 10px; line-height:1.2;
+  transform:rotate(12deg) scale(2); opacity:0; transition:transform .35s cubic-bezier(.3,1.5,.5,1),opacity .25s;
+}
+.postit.is-done .stamp{opacity:.85; transform:rotate(12deg) scale(1)}
+.actions{display:flex; flex-wrap:wrap; gap:8px}
+.btn{
+  font:800 .9rem 'Nunito',system-ui,sans-serif; cursor:pointer;
+  border:2px solid var(--ink); background:transparent; color:var(--ink);
+  border-radius:999px; padding:8px 14px;
+}
+.btn:hover{background:rgba(59,44,16,.08)}
+.btn.primary{background:var(--red); border-color:var(--red); color:#fff}
+.btn.primary:hover{background:#ad0d27}
+.btn.primary.is-done{background:var(--green); border-color:var(--green)}
+.btn.link{border-color:transparent; text-decoration:underline; padding:8px 6px}
+.edit label{display:block; font-weight:800; font-size:.72rem; letter-spacing:.1em; text-transform:uppercase; color:#7a5a17; margin:0 0 12px}
+.edit input,.edit textarea{
+  display:block; width:100%; margin-top:4px; resize:vertical;
+  font-family:'Cormorant Garamond',Georgia,serif; font-size:1.3rem; color:var(--ink);
+  background:rgba(255,255,255,.55); border:1.5px dashed rgba(59,44,16,.45); border-radius:8px; padding:4px 10px;
+}
+.edit input:focus,.edit textarea:focus{outline:2px solid var(--red); outline-offset:1px}
+[hidden]{display:none!important}
+
+/* ---------- rodapé ---------- */
+footer{text-align:center; padding:16px 16px 0}
+.note{margin:0 0 10px; font-size:.85rem; color:rgba(251,243,228,.6)}
+.settings-btn{
+  font:700 .85rem 'Nunito',sans-serif; cursor:pointer; color:var(--cream);
+  background:rgba(0,0,0,.25); border:1px solid rgba(251,243,228,.25); border-radius:999px; padding:6px 14px;
+}
+.panel{
+  max-width:430px; margin:12px auto 0; text-align:left;
+  background:rgba(0,0,0,.32); border:1px solid rgba(242,193,78,.3); border-radius:16px; padding:16px 18px;
+}
+.panel label{display:flex; gap:10px; align-items:flex-start; font-size:.92rem; cursor:pointer}
+.panel input[type=checkbox]{width:18px; height:18px; accent-color:var(--red); margin-top:2px; flex:none}
+.panel small{display:block; color:rgba(251,243,228,.6); margin-top:2px}
+.reset{
+  margin-top:14px; font:700 .85rem 'Nunito',sans-serif; cursor:pointer;
+  background:transparent; color:#ffb3bd; border:1px solid rgba(255,179,189,.5); border-radius:999px; padding:6px 14px;
+}
+.reset.confirm{background:var(--red); color:#fff; border-color:var(--red)}
+
+/* ---------- aviso e neve ---------- */
+.toast{
+  position:fixed; left:50%; bottom:22px; z-index:60; max-width:90vw;
+  transform:translate(-50%,calc(100% + 40px)); visibility:hidden; transition:transform .35s cubic-bezier(.3,1.3,.5,1),visibility 0s .35s;
+  background:var(--cream); color:var(--red-d); font-weight:800; text-align:center;
+  padding:12px 18px; border-radius:14px; box-shadow:0 10px 26px rgba(0,0,0,.4);
+}
+.toast.show{transform:translate(-50%,0); visibility:visible; transition:transform .35s cubic-bezier(.3,1.3,.5,1)}
+.snow{position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden}
+.flake{position:absolute; top:-12px; border-radius:50%; background:#fff; animation:fall linear infinite}
+@keyframes fall{to{transform:translate(var(--drift),112vh)}}
+
+@media (prefers-reduced-motion:reduce){
+  .flake{display:none}
+  .garland .bulb *,.halo,.gift.today:not(.open) .box{animation:none!important}
+}
+</style>
+</head>
+<body>
+<div class="snow" id="snow" aria-hidden="true"></div>
+
+<header>
+  <svg class="garland" id="garlandTop" aria-hidden="true"></svg>
+  <h1>Calendário de Advento</h1>
+  <p class="sub">uma pequena alegria por dia · de 1 a 24 de dezembro</p>
+  <div class="status" id="status"></div>
+</header>
+
+<main>
+  <div class="board" id="board" aria-label="Presentes de 1 a 24 de dezembro"></div>
+</main>
+
+<footer>
+  <p class="note">Seu progresso fica salvo neste dispositivo.</p>
+  <button class="settings-btn" id="settingsBtn" aria-expanded="false" aria-controls="panel">⚙ Ajustes</button>
+  <div class="panel" id="panel" hidden>
+    <label>
+      <input type="checkbox" id="unlockAll">
+      <span>Liberar todos os dias
+        <small>Para espiar os presentes antes da data.</small></span>
+    </label>
+    <button class="reset" id="resetBtn">Recomeçar o calendário</button>
+    <small style="display:block;color:rgba(251,243,228,.55);margin-top:6px">Fecha todos os presentes e desmarca as tarefas. Os textos que você editou continuam.</small>
+  </div>
+  <svg class="garland bottom" id="garlandBottom" aria-hidden="true"></svg>
+</footer>
+
+<div class="stage" id="stage" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="stTitle">
+  <button class="stage-close" id="stClose" aria-label="Voltar ao calendário">✕</button>
+  <div class="stage-inner">
+    <h2 id="stTitle">Um último presente…</h2>
+    <p>Você abriu e cumpriu os 24 dias. Este aqui é para o dia de Natal.</p>
+    <div class="gift25-wrap" id="g25wrap"><span class="rays"></span></div>
+    <button class="settings-btn" id="stBack">Voltar ao calendário</button>
+  </div>
+</div>
+<button class="btn25" id="btn25" hidden>🎁 Presente do dia 25</button>
+
+<div class="overlay" id="overlay">
+  <div class="postit-wrap" id="wrap" role="dialog" aria-modal="true" aria-labelledby="pTitle">
+    <span class="tape"></span>
+    <div class="postit" id="postit">
+      <div class="stamp">feito! ✓</div>
+      <p class="pdate" id="pDate"></p>
+      <div id="viewMode">
+        <h2 id="pTitle"></h2>
+        <p class="pdesc" id="pDesc"></p>
+        <div class="actions">
+          <button class="btn primary" id="bDone"></button>
+          <button class="btn" id="bEdit">✎ Editar</button>
+          <button class="btn" id="bClose">Fechar</button>
+        </div>
+      </div>
+      <div class="edit" id="editMode" hidden>
+        <label>Título<input id="eTitle" maxlength="60"></label>
+        <label>Tarefa<textarea id="eDesc" rows="4" maxlength="400"></textarea></label>
+        <div class="actions">
+          <button class="btn primary" id="bSave">Salvar</button>
+          <button class="btn" id="bCancel">Cancelar</button>
+          <button class="btn link" id="bRestore">Voltar ao original</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+  /* ---------- tarefas ---------- */
+  const TASKS = {
+    1:{t:"Trilha sonora natalina", d:"Escolha uma playlist de Natal e deixe tocando enquanto estuda."},
+    2:{t:"Celular de Natal", d:"Troque o papel de parede do celular por um natalino."},
+    3:{t:"Pausa doce", d:"Coma um bombom ou um pedacinho de panetone no intervalo dos estudos. Você merece."},
+    4:{t:"Três coisas boas", d:"Anote três coisas boas que aconteceram neste ano."},
+    5:{t:"Refresco natalino", d:"Faça um chocolate gelado ou um milkshake com pedacinhos de panetone para encarar o calor de dezembro."},
+    6:{t:"Mensagem carinhosa", d:"Mande uma mensagem para alguém de quem você sente saudade."},
+    7:{t:"Cantinho iluminado", d:"Coloque um pisca-pisca ou um enfeite na sua mesa de estudos."},
+    8:{t:"Rabisco natalino", d:"Desenhe uma árvore de Natal, uma estrela ou um Papai Noel de bermuda na margem do caderno."},
+    9:{t:"Episódio especial", d:"Assista a um episódio de Natal de uma série que você gosta."},
+    10:{t:"Lista de desejos", d:"Escreva sua lista de desejos de Natal. Vale incluir coisas que não se compram."},
+    11:{t:"Estrela de papel", d:"Dobre uma estrela ou um anjinho de papel e pendure em algum lugar."},
+    12:{t:"Dança natalina", d:"Coloque uma música de Natal bem alto e dance, nem que seja sozinha no quarto."},
+    13:{t:"Cartão à mão", d:"Escreva um cartão de Natal à mão para alguém especial."},
+    14:{t:"Sessão de cinema", d:"Assista a um filme de Natal inteiro, com pipoca."},
+    15:{t:"Passeio iluminado", d:"Saia à noite para ver as luzes e as decorações de Natal da cidade."},
+    16:{t:"Boa ação", d:"Doe roupas, brinquedos ou alimentos, ou ajude alguma campanha de Natal."},
+    17:{t:"Biscoitos", d:"Faça biscoitos natalinos (ou decore biscoitos prontos com glacê)."},
+    18:{t:"Enfeite costurado", d:"Costure um enfeite de feltro ou de retalho para a árvore."},
+    19:{t:"Ateliê de embrulhos", d:"Embrulhe os presentes com capricho, ouvindo a playlist do dia 1."},
+    20:{t:"Noite de jogos", d:"Jogue cartas ou um jogo de tabuleiro com a família ou os amigos."},
+    21:{t:"Retrospectiva", d:"Escolha suas fotos favoritas do ano e monte um álbum ou uma colagem."},
+    22:{t:"Receita de Natal", d:"Faça uma receita natalina: rabanada, pavê, farofa... você escolhe."},
+    23:{t:"Carta para o futuro", d:"Escreva uma carta para você mesma abrir no Natal do ano que vem."},
+    24:{t:"Véspera de Natal", d:"Durante a ceia, diga a cada pessoa à mesa uma coisa que você admira nela. E tire uma foto de todo mundo junto. Feliz Natal! 🎄"},
+    25:{t:"Feliz Natal!", d:"Hoje a única tarefa é aproveitar: dormir até mais tarde, comer o que sobrou da ceia e ficar perto de quem você ama. Você cumpriu os 24 dias do advento. Que orgulho! 🎄✨"}
+  };
+  const VARIANT = {1:0,2:4,3:4,4:2,5:0,6:3,7:3,8:1,9:1,10:5,11:5,12:1,13:0,14:0,15:5,16:4,17:1,18:4,19:3,20:2,21:3,22:2,23:0,24:24,25:25};
+
+  /* ---------- datas ---------- */
+  const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const start = new Date();
+  const YEAR = start.getMonth() === 0 ? start.getFullYear() - 1 : start.getFullYear();
+  const dayDate = d => new Date(YEAR, 11, d);
+  const todayMidnight = () => { const n = new Date(); return new Date(n.getFullYear(), n.getMonth(), n.getDate()); };
+  const daysUntil = d => Math.round((dayDate(d) - todayMidnight()) / 864e5);
+  const todayDay = () => { const n = new Date(); return (n.getFullYear() === YEAR && n.getMonth() === 11 && n.getDate() <= 24) ? n.getDate() : null; };
+
+  /* ---------- armazenamento (por dispositivo) ---------- */
+  const KEY = 'calendario-advento-' + YEAR;
+  let state = {opened:{}, done:{}, custom:{}, unlockAll:false};
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (raw) state = Object.assign(state, JSON.parse(raw));
+  } catch(e) {}
+  function save(){ try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e) {} }
+
+  const unlocked = d => state.unlockAll || daysUntil(d) <= 0;
+  const task = d => state.custom[d] || TASKS[d];
+
+  /* ---------- presentes ---------- */
+  const board = document.getElementById('board');
+  const BOW = '<svg class="bow" viewBox="0 0 100 60" aria-hidden="true">' +
+    '<path class="r" d="M46 44 L34 60 L43 58 L50 47Z"/><path class="r" d="M54 44 L66 60 L57 58 L50 47Z"/>' +
+    '<path class="r" d="M50 40 C30 6 3 12 9 34 C13 50 35 48 50 40Z"/><path class="r" d="M50 40 C70 6 97 12 91 34 C87 50 65 48 50 40Z"/>' +
+    '<path class="s" d="M50 40 C38 24 20 20 18 32 C24 26 38 30 50 40Z"/><path class="s" d="M50 40 C62 24 80 20 82 32 C76 26 62 30 50 40Z"/>' +
+    '<circle class="r" cx="50" cy="40" r="8"/></svg>';
+  const gifts = {};
+  for (let d = 1; d <= 24; d++){
+    const b = document.createElement('button');
+    b.className = 'gift v' + VARIANT[d] + (d === 24 ? ' d24 big' : '');
+    b.style.gridArea = 'd' + d;
+    b.dataset.day = d;
+    b.innerHTML =
+      (d === 24 ? '<span class="halo"></span>' : '') +
+      '<span class="tissue"></span>' +
+      '<span class="box"><span class="num"><span>' + d + '</span></span></span>' +
+      '<span class="lid">' + BOW + '</span>' +
+      '<span class="badge" aria-hidden="true">✓</span>' +
+      '<span class="hoje">hoje</span>';
+    board.appendChild(b);
+    gifts[d] = b;
+  }
+  const g25 = document.createElement('button');
+  g25.className = 'gift v25 big';
+  g25.dataset.day = 25;
+  g25.setAttribute('aria-label', 'Presente do dia 25');
+  g25.innerHTML = '<span class="halo"></span><span class="tissue"></span>' +
+    '<span class="box"><span class="num"><span>25</span></span></span>' +
+    '<span class="lid">' + BOW + '</span><span class="badge" aria-hidden="true">✓</span>';
+  document.getElementById('g25wrap').appendChild(g25);
+  gifts[25] = g25;
+
+  const allDone = () => { for (let d = 1; d <= 24; d++) if (!state.opened[d] || !state.done[d]) return false; return true; };
+  let stageOpen = false;
+
+  function render(){
+    const td = todayDay();
+    let opened = 0, done = 0;
+    for (let d = 1; d <= 24; d++){
+      const g = gifts[d];
+      if (!g.classList.contains('opening')) g.classList.toggle('open', !!state.opened[d]);
+      g.classList.toggle('done', !!state.done[d]);
+      g.classList.toggle('today', td === d);
+      if (state.opened[d]) opened++;
+      if (state.done[d]) done++;
+      g.setAttribute('aria-label', 'Dia ' + d + (state.opened[d] ? ', aberto' : '') + (state.done[d] ? ', tarefa feita' : '') + (unlocked(d) ? '' : ', ainda fechado'));
+    }
+    if (!g25.classList.contains('opening')) g25.classList.toggle('open', !!state.opened[25]);
+    g25.classList.toggle('done', !!state.done[25]);
+    document.getElementById('btn25').hidden = !(allDone() && !stageOpen);
+    const s = document.getElementById('status');
+    let main;
+    const until1 = daysUntil(1);
+    if (until1 > 0 && !state.unlockAll) main = until1 === 1 ? 'O primeiro presente abre amanhã! 🎁' : 'Faltam ' + until1 + ' dias para o primeiro presente 🎁';
+    else if (td) main = td === 24 ? 'Hoje é véspera de Natal! 🎄' : 'Hoje é ' + td + ' de dezembro · faltam ' + (25 - td) + ' dias para o Natal';
+    else if (daysUntil(25) <= 0) main = 'Feliz Natal! 🎄';
+    else main = 'Modo espiadinha ligado 👀';
+    s.innerHTML = '<span class="chip">' + main + '</span><span class="chip">🎁 ' + opened + '/24 abertos</span><span class="chip">✓ ' + done + '/24 feitas</span>';
+  }
+
+  /* ---------- abrir ---------- */
+  let busy = false, current = null;
+  const wait = ms => new Promise(r => setTimeout(r, ms));
+
+  board.addEventListener('click', e => {
+    const g = e.target.closest('.gift');
+    if (g) openDay(+g.dataset.day, g);
+  });
+  g25.addEventListener('click', () => openDay(25, g25));
+
+  async function openDay(d, g){
+    if (busy) return;
+    if (!unlocked(d)){
+      g.classList.remove('locked-shake'); void g.offsetWidth; g.classList.add('locked-shake');
+      setTimeout(() => g.classList.remove('locked-shake'), 500);
+      const n = daysUntil(d);
+      if (d === 25) toast(n === 1 ? 'Esse só abre à meia-noite! Falta pouquinho 🎄' : 'Esse é para o dia 25 de dezembro. Faltam ' + n + ' dias 🎄');
+      else toast(n === 1 ? 'Calma! O dia ' + d + ' abre amanhã ✨' : 'Ainda não! O dia ' + d + ' abre em ' + d + ' de dezembro. Faltam ' + n + ' dias ✨');
+      return;
+    }
+    busy = true;
+    if (!state.opened[d] && !reduce){
+      g.classList.add('opening');
+      await wait(650);
+      burst(g);
+      await wait(450);
+      state.opened[d] = true; save();
+      g.classList.add('open'); g.classList.remove('opening');
+    } else {
+      state.opened[d] = true; save();
+    }
+    render();
+    showPostit(d, g);
+    busy = false;
+  }
+
+  /* ---------- palco do dia 25 ---------- */
+  const stage = document.getElementById('stage');
+  const g25wrap = document.getElementById('g25wrap');
+  function showStage(enter){
+    stageOpen = true;
+    stage.classList.add('show');
+    if (!state.seen25){ state.seen25 = true; save(); }
+    render();
+    if (enter && !reduce){
+      g25wrap.classList.remove('enter'); void g25wrap.offsetWidth; g25wrap.classList.add('enter');
+      setTimeout(() => { burst(g25); }, 800);
+      setTimeout(() => g25wrap.classList.remove('enter'), 1200);
+    }
+    setTimeout(() => stage.focus({preventScroll:true}), 60);
+  }
+  function hideStage(){
+    stageOpen = false;
+    stage.classList.remove('show');
+    render();
+    const b = document.getElementById('btn25');
+    if (!b.hidden) b.focus({preventScroll:true});
+  }
+  document.getElementById('stClose').onclick = hideStage;
+  document.getElementById('stBack').onclick = hideStage;
+  document.getElementById('btn25').onclick = () => showStage(false);
+
+  function burst(el){
+    const r = el.getBoundingClientRect();
+    const cx = r.left + r.width / 2, cy = r.top + r.height * .3;
+    const colors = ['#ffd166','#ff3b4e','#3ddc84','#fff4d6'];
+    for (let i = 0; i < 18; i++){
+      const s = document.createElement('span');
+      s.className = 'spark';
+      s.textContent = i % 3 === 0 ? '✦' : '●';
+      s.style.color = colors[i % colors.length];
+      s.style.fontSize = (i % 3 === 0 ? 18 : 7 + Math.random() * 5) + 'px';
+      s.style.left = cx + 'px'; s.style.top = cy + 'px';
+      document.body.appendChild(s);
+      const a = (Math.PI * 2 * i / 18) + Math.random() * .4;
+      const dist = 50 + Math.random() * 70;
+      s.animate([
+        {transform:'translate(-50%,-50%) scale(.3)', opacity:1},
+        {transform:'translate(calc(-50% + ' + Math.cos(a) * dist + 'px), calc(-50% + ' + (Math.sin(a) * dist - 30) + 'px)) scale(1)', opacity:1, offset:.6},
+        {transform:'translate(calc(-50% + ' + Math.cos(a) * dist * 1.2 + 'px), calc(-50% + ' + (Math.sin(a) * dist * 1.2 + 10) + 'px)) scale(.6)', opacity:0}
+      ], {duration:900 + Math.random() * 300, easing:'cubic-bezier(.2,.8,.4,1)'}).onfinish = () => s.remove();
+    }
+  }
+
+  /* ---------- post-it ---------- */
+  const overlay = document.getElementById('overlay');
+  const wrap = document.getElementById('wrap');
+  const postit = document.getElementById('postit');
+  const $ = id => document.getElementById(id);
+
+  function fillPostit(d){
+    const t = task(d);
+    const wd = dayDate(d).toLocaleDateString('pt-BR', {weekday:'long'});
+    $('pDate').textContent = 'Dia ' + d + ' · ' + wd;
+    $('pTitle').textContent = t.t;
+    $('pDesc').textContent = t.d;
+    const isDone = !!state.done[d];
+    postit.classList.toggle('is-done', isDone);
+    $('bDone').textContent = isDone ? '✓ Feito!' : 'Marcar como feito';
+    $('bDone').classList.toggle('is-done', isDone);
+    $('bDone').setAttribute('aria-pressed', isDone);
+    $('bRestore').hidden = !state.custom[d];
+  }
+  function setEditing(on){
+    $('viewMode').hidden = on; $('editMode').hidden = !on;
+    if (on){
+      const t = task(current);
+      $('eTitle').value = t.t; $('eDesc').value = t.d;
+      $('eTitle').focus();
+    } else $('bDone').focus();
+  }
+  function fromGift(g){
+    const r = g.getBoundingClientRect();
+    const dx = r.left + r.width / 2 - innerWidth / 2;
+    const dy = r.top + r.height / 2 - innerHeight / 2;
+    return 'translate(-50%,-50%) translate(' + dx + 'px,' + dy + 'px) scale(.08) rotate(-25deg)';
+  }
+  function showPostit(d, g){
+    current = d;
+    fillPostit(d);
+    $('viewMode').hidden = false; $('editMode').hidden = true;
+    overlay.classList.add('show');
+    wrap.getAnimations().forEach(a => a.cancel());
+    wrap.animate([
+      {transform:fromGift(g), opacity:0},
+      {opacity:1, offset:.35},
+      {transform:'translate(-50%,-50%) rotate(-2deg)', opacity:1}
+    ], {duration:reduce ? 1 : 650, easing:'cubic-bezier(.2,1.25,.35,1)', fill:'both'});
+    setTimeout(() => $('bDone').focus({preventScroll:true}), 50);
+  }
+  function closePostit(){
+    if (current == null) return;
+    const g = gifts[current];
+    wrap.getAnimations().forEach(a => a.cancel());
+    wrap.animate([
+      {transform:'translate(-50%,-50%) rotate(-2deg)', opacity:1},
+      {transform:fromGift(g), opacity:0}
+    ], {duration:reduce ? 1 : 380, easing:'cubic-bezier(.5,0,.75,0)', fill:'forwards'});
+    overlay.classList.remove('show');
+    current = null;
+    g.focus({preventScroll:true});
+    if (allDone() && !state.seen25 && !stageOpen) setTimeout(() => showStage(true), 450);
+  }
+
+  $('bClose').onclick = closePostit;
+  overlay.addEventListener('click', e => { if (e.target === overlay) closePostit(); });
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Escape') return;
+    if (overlay.classList.contains('show')) closePostit();
+    else if (stageOpen) hideStage();
+  });
+  $('bDone').onclick = () => {
+    const d = current;
+    state.done[d] = !state.done[d];
+    if (!state.done[d]) delete state.done[d];
+    save(); fillPostit(d); render();
+    if (state.done[d] && !reduce) burstOn($('bDone'));
+  };
+  function burstOn(el){ burst(el); }
+  $('bEdit').onclick = () => setEditing(true);
+  $('bCancel').onclick = () => setEditing(false);
+  $('bSave').onclick = () => {
+    const t = $('eTitle').value.trim(), d = $('eDesc').value.trim();
+    if (!t && !d) { delete state.custom[current]; }
+    else state.custom[current] = {t:t || TASKS[current].t, d:d || TASKS[current].d};
+    save(); fillPostit(current); setEditing(false);
+    toast('Tarefa do dia ' + current + ' atualizada ✍️');
+  };
+  $('bRestore').onclick = () => {
+    delete state.custom[current];
+    save(); fillPostit(current); setEditing(false);
+  };
+
+  /* ---------- ajustes ---------- */
+  const panel = $('panel');
+  $('settingsBtn').onclick = () => {
+    panel.hidden = !panel.hidden;
+    $('settingsBtn').setAttribute('aria-expanded', !panel.hidden);
+  };
+  $('unlockAll').checked = !!state.unlockAll;
+  $('unlockAll').onchange = e => { state.unlockAll = e.target.checked; save(); render(); };
+  let resetTimer;
+  $('resetBtn').onclick = e => {
+    const b = e.currentTarget;
+    if (!b.classList.contains('confirm')){
+      b.classList.add('confirm'); b.textContent = 'Tem certeza? Toque de novo';
+      resetTimer = setTimeout(() => { b.classList.remove('confirm'); b.textContent = 'Recomeçar o calendário'; }, 4000);
+      return;
+    }
+    clearTimeout(resetTimer);
+    state.opened = {}; state.done = {}; state.seen25 = false; save();
+    if (stageOpen) hideStage(); else render();
+    b.classList.remove('confirm'); b.textContent = 'Recomeçar o calendário';
+    toast('Todos os presentes foram embrulhados de novo 🎁');
+  };
+
+  /* ---------- aviso ---------- */
+  let toastTimer;
+  function toast(msg){
+    const t = $('toast');
+    t.textContent = msg; t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
+  }
+
+  /* ---------- pisca-pisca ---------- */
+  const BULBS = [
+    {c:'#ff3b4e', g:'rgba(255,59,78,'},
+    {c:'#3ddc84', g:'rgba(61,220,132,'},
+    {c:'#ffd166', g:'rgba(255,209,102,'},
+    {c:'#fff1cf', g:'rgba(255,241,207,'}
+  ];
+  function buildGarland(svg, prefix){
+    const W = Math.max(320, Math.round(svg.getBoundingClientRect().width || innerWidth));
+    const H = 64, top = 6, sag = 44;
+    const n = Math.max(2, Math.round(W / (W < 600 ? 120 : 170)));
+    const S = W / n;
+    let defs = '<defs>' + BULBS.map((b, i) =>
+      '<radialGradient id="' + prefix + i + '"><stop offset="0" stop-color="' + b.g + '.95)"/><stop offset=".45" stop-color="' + b.g + '.35)"/><stop offset="1" stop-color="' + b.g + '0)"/></radialGradient>'
+    ).join('') + '</defs>';
+    let path = 'M0 ' + top, bulbs = '', k = 0;
+    for (let i = 0; i < n; i++){
+      const x0 = i * S, cx = x0 + S / 2, x1 = x0 + S;
+      path += ' Q' + cx + ' ' + (top + sag) + ' ' + x1 + ' ' + top;
+      [.2, .5, .8].forEach(t => {
+        const x = (1 - t) * (1 - t) * x0 + 2 * (1 - t) * t * cx + t * t * x1;
+        const y = (1 - t) * (1 - t) * top + 2 * (1 - t) * t * (top + sag) + t * t * top;
+        const slope = 2 * (1 - t) * (sag) * -1 + 2 * t * sag; // derivada aproximada
+        const rot = Math.max(-25, Math.min(25, slope * .25)) + (k % 2 ? 6 : -6);
+        const b = k % BULBS.length;
+        const dur = (1.6 + (k % 3) * .5).toFixed(2);
+        const del = ((k % 4) * .4 + Math.random() * .3).toFixed(2);
+        bulbs += '<g class="bulb" transform="translate(' + x.toFixed(1) + ',' + y.toFixed(1) + ') rotate(' + rot.toFixed(1) + ')" style="--dur:' + dur + 's;--del:-' + del + 's">' +
+          '<circle class="glow" cx="0" cy="15" r="17" fill="url(#' + prefix + b + ')"/>' +
+          '<rect x="-3.2" y="-1" width="6.4" height="7" rx="1.4" fill="#0b2a1a"/>' +
+          '<path class="lamp" d="M0 5 C-7 9 -6.5 19 0 23 C6.5 19 7 9 0 5Z" fill="' + BULBS[b].c + '"/>' +
+          '<ellipse cx="-2" cy="12" rx="1.3" ry="3" fill="rgba(255,255,255,.65)"/></g>';
+        k++;
+      });
+    }
+    svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+    svg.innerHTML = defs + '<path class="wire" d="' + path + '"/>' + bulbs;
+  }
+  function garlands(){
+    buildGarland($('garlandTop'), 'gt');
+    buildGarland($('garlandBottom'), 'gb');
+  }
+  let rz;
+  addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(garlands, 150); });
+
+  /* ---------- neve ---------- */
+  if (!reduce){
+    const snow = $('snow');
+    for (let i = 0; i < 34; i++){
+      const f = document.createElement('span');
+      f.className = 'flake';
+      const size = 2 + Math.random() * 3.5;
+      f.style.width = f.style.height = size + 'px';
+      f.style.left = Math.random() * 100 + 'vw';
+      f.style.opacity = (.25 + Math.random() * .45).toFixed(2);
+      f.style.setProperty('--drift', (Math.random() * 80 - 40) + 'px');
+      f.style.animationDuration = (9 + Math.random() * 10) + 's';
+      f.style.animationDelay = (-Math.random() * 18) + 's';
+      snow.appendChild(f);
+    }
+  }
+
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) render(); });
+  garlands();
+  render();
+  if (allDone() && !state.seen25) setTimeout(() => showStage(true), 400);
+})();
+</script>
+</body>
+</html>
